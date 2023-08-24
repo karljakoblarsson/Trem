@@ -1,0 +1,11 @@
+.card {
+  background-color: hsla(200, 80%,  80%, 0.3);
+  margin: 1em;
+  padding: 1px 1em;
+}
+
+.card-section {
+  padding: 1em;
+  margin: 1em;
+  background-color: hsla(23, 80%,  80%, 0.3);
+}
