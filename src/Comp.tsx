@@ -4,6 +4,7 @@ import {
   Component,
   createSignal,
   createContext,
+  createEffect,
   useContext,
   Accessor,
 } from "solid-js";
@@ -21,34 +22,41 @@ interface Item {
 type AppState = Item[];
 
 const initialStore: Item[] = [
-  {
-    id: "1",
-    title: "One",
-    columnId: "todo",
-    description: "One Description",
-  },
-  {
-    id: "4",
-    title: "Four",
-    columnId: "todo",
-    description: "Four Description",
-  },
-  {
-    id: "2",
-    title: "Two",
-    columnId: "doing",
-    description: "Two Description",
-  },
-  {
-    id: "3",
-    title: "Three",
-    columnId: "done",
-    description: "Three Description",
-  },
+  // {
+  //   id: "1",
+  //   title: "One",
+  //   columnId: "todo",
+  //   description: "One Description",
+  // },
+  // {
+  //   id: "4",
+  //   title: "Four",
+  //   columnId: "todo",
+  //   description: "Four Description",
+  // },
+  // {
+  //   id: "2",
+  //   title: "Two",
+  //   columnId: "doing",
+  //   description: "Two Description",
+  // },
+  // {
+  //   id: "3",
+  //   title: "Three",
+  //   columnId: "done",
+  //   description: "Three Description",
+  // },
 ];
 
 const makeTremContext = () => {
-  const [state, setState] = createStore<AppState>(initialStore);
+  const LS_KEY = "TREM_STATE";
+  const localStorageState = localStorage.getItem(LS_KEY);
+  const startState = localStorageState ? JSON.parse(localStorageState) : initialStore;
+
+  const [state, setState] = createStore<AppState>(startState);
+
+  createEffect(() => localStorage.setItem(LS_KEY, JSON.stringify(state)));
+
   return [
     state,
     {
