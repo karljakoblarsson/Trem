@@ -139,11 +139,13 @@ const Section: Component<{ columnId: string; i: Accessor<number> }> = (
         "background-color": `hsla(${30 + props.i() * 35}, 70%,  90%, 1)`,
       }}
     >
-      <h2>
+      <h2 class="column-title">
         {`${props.columnId}`}
+      </h2>
+      <div class="card-container">
         <Cards columnId={props.columnId} />
         <AddCard columnId={props.columnId} />
-      </h2>
+      </div>
     </section>
   );
 };
