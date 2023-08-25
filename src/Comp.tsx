@@ -51,7 +51,9 @@ const initialStore: Item[] = [
 const makeTremContext = () => {
   const LS_KEY = "TREM_STATE";
   const localStorageState = localStorage.getItem(LS_KEY);
-  const startState = localStorageState ? JSON.parse(localStorageState) : initialStore;
+  const startState = localStorageState
+    ? JSON.parse(localStorageState)
+    : initialStore;
 
   const [state, setState] = createStore<AppState>(startState);
 
@@ -149,15 +151,25 @@ const Section: Component<{ columnId: string; i: Accessor<number> }> = (
 const AddCard: Component<{ columnId: string }> = (props) => {
   const [_, { addItem }] = useTremContext();
   const [newTitle, setNewTitle] = createSignal<string | undefined>();
-  const addHandler = (event: SubmitEvent) => {
+  let titleInput: HTMLInputElement;
+
+  const submitHandler = (event: SubmitEvent) => {
     event.preventDefault();
     addItem(newTitle(), props.columnId);
     setNewTitle(undefined);
+    if (titleInput) {
+      titleInput.value = "";
+    }
   };
+
   return (
-    <div >
-      <form class="addCard" onSubmit={addHandler}>
-        <input type="text" onInput={(e) => setNewTitle(e.target.value)} />
+    <div>
+      <form class="addCard" onSubmit={submitHandler}>
+        <input
+          ref={titleInput}
+          type="text"
+          onInput={(e) => setNewTitle(e.target.value)}
+        />
         <button>+</button>
       </form>
     </div>

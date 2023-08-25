@@ -17,6 +17,7 @@ main {
 
 .card-section {
   flex-grow: 1;
+  align-self: start;
   max-width: 40ch;
   border-radius: var(--trem-border-radius);
   padding: 1em;
