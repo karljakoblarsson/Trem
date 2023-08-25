@@ -1,4 +1,4 @@
-import { For } from "solid-js/web";
+import { For, Show } from "solid-js/web";
 import {
   ParentComponent,
   Component,
@@ -11,17 +11,23 @@ import {
 import { createStore } from "solid-js/store";
 
 // type Status = "todo" | "doing" | "blocked" | "done";
+type CardId = string;
+
 interface Item {
-  id: string;
+  id: CardId;
   title: string;
   columnId: string;
   description: string;
   children?: Item[];
 }
 
-type AppState = Item[];
+type AppState = {
+  cards: Item[];
+  open: CardId | undefined;
+};
 
-const initialStore: Item[] = [
+const initialStore: AppState = {
+  cards: [
   // {
   //   id: "1",
   //   title: "One",
@@ -46,7 +52,9 @@ const initialStore: Item[] = [
   //   columnId: "done",
   //   description: "Three Description",
   // },
-];
+  ],
+  open: undefined,
+};
 
 const makeTremContext = () => {
   const LS_KEY = "TREM_STATE";
@@ -65,17 +73,28 @@ const makeTremContext = () => {
       setItemColumn(id: string, newColumnId: string) {
         console.log("setItemColumn", id, newColumnId);
         setState(
-          (card) => card.id === id,
+          "cards",
+          (card) => card?.id === id,
           "columnId",
           (_) => newColumnId
         );
       },
       addItem(title: string, columnId: string) {
         console.log("Adding item:", title);
-        setState([
-          ...state,
+        setState("cards", (cards) => [
+          ...cards,
           { id: crypto.randomUUID(), title, columnId, description: "" },
         ]);
+      },
+      openCard(cardId: CardId) {
+        setState("open", cardId
+        );
+      },
+      closeCard() {
+        setState("open", undefined);
+      },
+      removeCard(cardId: CardId) {
+        setState("cards", (card) => card?.id === cardId, undefined);
       },
     },
   ] as const;
@@ -139,9 +158,7 @@ const Section: Component<{ columnId: string; i: Accessor<number> }> = (
         "background-color": `hsla(${30 + props.i() * 35}, 70%,  90%, 1)`,
       }}
     >
-      <h2 class="column-title">
-        {`${props.columnId}`}
-      </h2>
+      <h2 class="column-title">{`${props.columnId}`}</h2>
       <div class="card-container">
         <Cards columnId={props.columnId} />
         <AddCard columnId={props.columnId} />
@@ -181,7 +198,7 @@ const AddCard: Component<{ columnId: string }> = (props) => {
 const Cards: Component<{ columnId: string }> = (props) => {
   const [state, _] = useTremContext();
   const children = (): Item[] =>
-    state.filter((item: Item) => item.columnId === props.columnId);
+    state.cards.filter((item: Item) => item?.columnId === props.columnId);
   return (
     <>
       <For each={Array.from(children())}>
@@ -192,6 +209,9 @@ const Cards: Component<{ columnId: string }> = (props) => {
 };
 
 const Card: Component<Item> = (props) => {
+  const [state, { openCard, closeCard, removeCard }] = useTremContext();
+  const isOpen = () => state.open === props.id;
+
   const [dragging, setDragging] = createSignal(false);
   const dragStartHandler = (event: DragEvent) => {
     console.log("dragStart", props.id);
@@ -203,14 +223,31 @@ const Card: Component<Item> = (props) => {
     setDragging(false);
   };
 
+  const clickHandler = (_: MouseEvent) => {
+    openCard(props.id);
+  };
+  const closeHandler = (_: MouseEvent) => {
+    closeCard();
+  };
+  const deleteHandler = (_: MouseEvent) => {
+    removeCard(props.id);
+  };
+
   return (
     <div
       draggable={true}
       onDragStart={dragStartHandler}
       onDragEnd={dragEndHandler}
       classList={{ card: true, dragging: dragging() }}
+      onClick={clickHandler}
     >
       <h3>{props.title}</h3>
+      <Show when={isOpen()}>
+        <div class="action-bar">
+          <button onClick={deleteHandler}>Delete</button>
+          <button onClick={closeHandler}>Close</button>
+        </div>
+      </Show>
     </div>
   );
 };
