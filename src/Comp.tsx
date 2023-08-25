@@ -1,5 +1,5 @@
 import { For } from "solid-js/web";
-import { children } from "solid-js";
+import { children, createSignal } from "solid-js";
 import { createStore } from "solid-js/store";
 
 type Status = "todo" | "doing" | "blocked" | "done";
@@ -57,7 +57,9 @@ const Comp = () => {
   return (
     <main>
       <For each={Array.from(statuses().values())}>
-        {(item) => <Section setFn={setItemStatus} item={item} state={state}></Section>}
+        {(item, i) => (
+          <Section {...{ item, state, setItemStatus, i }}></Section>
+        )}
       </For>
     </main>
   );
@@ -70,7 +72,7 @@ const Section = (props) => {
     event.preventDefault();
     const data = event.dataTransfer.getData("text/plain");
     console.log("drop", props.item, data);
-    props.setFn(data, props.item);
+    props.setItemStatus(data, props.item);
   };
   const dragOverHandler = (event) => {
     event.preventDefault();
@@ -82,6 +84,9 @@ const Section = (props) => {
       onDrop={dropHandler}
       onDragOver={dragOverHandler}
       class="card-section"
+      style={{
+        "background-color": `hsla(${30 + props.i() * 35}, 70%,  90%, 1)`,
+      }}
     >
       <h2>
         {`${props.item}`}
@@ -104,14 +109,24 @@ const Cards = (props) => {
 };
 
 const Card = (props) => {
+  const [dragging, setDragging] = createSignal(false);
   const dragStartHandler = (event) => {
     console.log("dragStart", props.id);
-    event.dataTransfer.dropEffect = "move";
     event.dataTransfer.setData("text/plain", props.id);
+    setDragging(true);
+  };
+
+  const dragEndHandler = (event) => {
+    setDragging(false);
   };
 
   return (
-    <div draggable={true} onDragStart={dragStartHandler} class="card">
+    <div
+      draggable={true}
+      onDragStart={dragStartHandler}
+      onDragEnd={dragEndHandler}
+      classList={{ card: true, dragging: dragging() }}
+    >
       <h3>{props.title}</h3>
     </div>
   );

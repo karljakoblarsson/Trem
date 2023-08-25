@@ -1,11 +1,31 @@
+html {
+  --trem-border-radius: 0.25em;
+}
+
+main {
+  display: flex;
+  flex-direction: row;
+}
+
 .card {
+  border-radius: var(--trem-border-radius);
   background-color: hsla(200, 80%,  80%, 0.3);
-  margin: 1em;
+  margin: 0.5em 0.1em;
   padding: 1px 1em;
+  transition: opacity 1s;
 }
 
 .card-section {
+  flex-grow: 1;
+  max-width: 40ch;
+  border-radius: var(--trem-border-radius);
   padding: 1em;
   margin: 1em;
   background-color: hsla(23, 80%,  80%, 0.3);
+}
+
+.dragging {
+  /* height: 0; */
+  opacity: 50%;
+  overflow: hidden;
 }
