@@ -1,12 +1,19 @@
 import { For } from "solid-js/web";
-import { children, createSignal, createContext, useContext } from "solid-js";
+import {
+  ParentComponent,
+  Component,
+  createSignal,
+  createContext,
+  useContext,
+  Accessor,
+} from "solid-js";
 import { createStore } from "solid-js/store";
 
-type Status = "todo" | "doing" | "blocked" | "done";
+// type Status = "todo" | "doing" | "blocked" | "done";
 interface Item {
   id: string;
   title: string;
-  status: Status;
+  columnId: string;
   description: string;
   children?: Item[];
 }
@@ -17,59 +24,57 @@ const initialStore: Item[] = [
   {
     id: "1",
     title: "One",
-    status: "todo",
+    columnId: "todo",
     description: "One Description",
   },
   {
     id: "4",
     title: "Four",
-    status: "todo",
+    columnId: "todo",
     description: "Four Description",
   },
   {
     id: "2",
     title: "Two",
-    status: "doing",
+    columnId: "doing",
     description: "Two Description",
   },
   {
     id: "3",
     title: "Three",
-    status: "done",
+    columnId: "done",
     description: "Three Description",
   },
 ];
 
-type TremContext = [
-  AppState,
-  {
-    setItemStatus: (id: string, newStatus: Status) => void
-  },
-]
-
-const TremContext = createContext<TremContext>();
-function TremProvider(props) {
-  const [state, setState] = createStore<AppState>(props.state || initialStore);
-  const trem: TremContext = [
+const makeTremContext = () => {
+  const [state, setState] = createStore<AppState>(initialStore);
+  return [
     state,
     {
-      setItemStatus(id: string, newStatus: Status) {
-        console.log("setItemStatus", id, newStatus);
+      setItemColumn(id: string, newColumnId: string) {
+        console.log("setItemColumn", id, newColumnId);
         setState(
           (card) => card.id === id,
-          "status",
-          (_) => newStatus
+          "columnId",
+          (_) => newColumnId
         );
       },
     },
-  ];
+  ] as const;
+};
 
+type TremContext = ReturnType<typeof makeTremContext>;
+const TremContext = createContext<TremContext>();
+
+const TremProvider: ParentComponent = (props) => {
+  const trem = makeTremContext();
   return (
     <TremContext.Provider value={trem}>{props.children}</TremContext.Provider>
   );
-}
+};
 
-const useTremContext = () => {
+const useTremContext = (): TremContext => {
   const context = useContext(TremContext);
   if (!context) {
     throw new Error("useTremContext: cannot find a TremContext");
@@ -84,23 +89,23 @@ const Comp = () => {
     <TremProvider>
       <main>
         <For each={statuses}>
-          {(item, i) => <Section {...{ item, i }}></Section>}
+          {(columnId, i) => <Section {...{ columnId, i }}></Section>}
         </For>
       </main>
     </TremProvider>
   );
 };
 
-const Section = (props) => {
-  const [state, { setItemStatus }] = useTremContext();
+const Section: Component<{ columnId: string, i: Accessor<number> }> = (props) => {
+  const [_, { setItemColumn }] = useTremContext();
 
-  const dropHandler = (event) => {
+  const dropHandler = (event: DragEvent) => {
     event.preventDefault();
     const data = event.dataTransfer.getData("text/plain");
-    console.log("drop", props.item, data);
-    setItemStatus(data, props.item);
+    console.log("drop", props.columnId, data);
+    setItemColumn(data, props.columnId);
   };
-  const dragOverHandler = (event) => {
+  const dragOverHandler = (event: DragEvent) => {
     event.preventDefault();
     console.log("dragOver");
     event.dataTransfer.dropEffect = "move";
@@ -116,34 +121,35 @@ const Section = (props) => {
       }}
     >
       <h2>
-        {`${props.item}`}
-        <Cards status={props.item} state={state} />
+        {`${props.columnId}`}
+        <Cards columnId={props.columnId} />
       </h2>
     </section>
   );
 };
 
-const Cards = (props) => {
+const Cards: Component<{ columnId: string }> = (props) => {
+  const [state, _] = useTremContext();
   const children = (): Item[] =>
-    props.state.filter((item: Item) => item.status === props.status);
+    state.filter((item: Item) => item.columnId === props.columnId);
   return (
     <>
       <For each={Array.from(children())}>
-        {(card) => <Card title={card.title} id={card.id}></Card>}
+        {(card) => <Card {...card}></Card>}
       </For>
     </>
   );
 };
 
-const Card = (props) => {
+const Card: Component<Item> = (props) => {
   const [dragging, setDragging] = createSignal(false);
-  const dragStartHandler = (event) => {
+  const dragStartHandler = (event: DragEvent) => {
     console.log("dragStart", props.id);
     event.dataTransfer.setData("text/plain", props.id);
     setDragging(true);
   };
 
-  const dragEndHandler = (event) => {
+  const dragEndHandler = (_: DragEvent) => {
     setDragging(false);
   };
 
