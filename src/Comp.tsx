@@ -60,6 +60,13 @@ const makeTremContext = () => {
           (_) => newColumnId
         );
       },
+      addItem(title: string, columnId: string) {
+        console.log("Adding item:", title);
+        setState([
+          ...state,
+          { id: crypto.randomUUID(), title, columnId, description: "" },
+        ]);
+      },
     },
   ] as const;
 };
@@ -96,7 +103,9 @@ const Comp = () => {
   );
 };
 
-const Section: Component<{ columnId: string, i: Accessor<number> }> = (props) => {
+const Section: Component<{ columnId: string; i: Accessor<number> }> = (
+  props
+) => {
   const [_, { setItemColumn }] = useTremContext();
 
   const dropHandler = (event: DragEvent) => {
@@ -123,8 +132,27 @@ const Section: Component<{ columnId: string, i: Accessor<number> }> = (props) =>
       <h2>
         {`${props.columnId}`}
         <Cards columnId={props.columnId} />
+        <AddCard columnId={props.columnId} />
       </h2>
     </section>
+  );
+};
+
+const AddCard: Component<{ columnId: string }> = (props) => {
+  const [_, { addItem }] = useTremContext();
+  const [newTitle, setNewTitle] = createSignal<string | undefined>();
+  const addHandler = (event: SubmitEvent) => {
+    event.preventDefault();
+    addItem(newTitle(), props.columnId);
+    setNewTitle(undefined);
+  };
+  return (
+    <div >
+      <form class="addCard" onSubmit={addHandler}>
+        <input type="text" onInput={(e) => setNewTitle(e.target.value)} />
+        <button>+</button>
+      </form>
+    </div>
   );
 };
 
