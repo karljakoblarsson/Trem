@@ -96,6 +96,9 @@ const makeTremContext = () => {
       removeCard(cardId: CardId) {
         setState("cards", (card) => card?.id === cardId, undefined);
       },
+      setDescription(cardId: CardId, description: string) {
+        setState("cards", (card) => card?.id === cardId, "description", description);
+      },
     },
   ] as const;
 };
@@ -209,9 +212,10 @@ const Cards: Component<{ columnId: string }> = (props) => {
 };
 
 const Card: Component<Item> = (props) => {
-  const [state, { openCard, closeCard, removeCard }] = useTremContext();
+  const [state, { openCard, closeCard, removeCard, setDescription }] = useTremContext();
   const isOpen = () => state.open === props.id;
 
+  const [editDescription, setEditDescription] = createSignal(false);
   const [dragging, setDragging] = createSignal(false);
   const dragStartHandler = (event: DragEvent) => {
     console.log("dragStart", props.id);
@@ -243,6 +247,13 @@ const Card: Component<Item> = (props) => {
     >
       <h3>{props.title}</h3>
       <Show when={isOpen()}>
+        <div class="description">
+          <Show when={editDescription()} fallback={<p class="descriptionText" onClick={(e) => setEditDescription(true)}>{props.description}</p>}>
+            <textarea
+              onBlur={(e) => {setDescription(props.id, e.target.value); setEditDescription(false);}}
+            >{props.description}</textarea>
+          </Show>
+        </div>
         <div class="action-bar">
           <button onClick={deleteHandler}>Delete</button>
           <button onClick={closeHandler}>Close</button>

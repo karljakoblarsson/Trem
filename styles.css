@@ -68,3 +68,15 @@ main {
   flex-direction: row;
   justify-content: space-between;
 }
+
+.description {
+  display: block;
+  cursor: pointer;
+  min-height: 1em;
+}
+.descriptionText {
+  display: block;
+  cursor: pointer;
+  min-height: 1em;
+
+}
