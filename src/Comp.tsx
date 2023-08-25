@@ -1,5 +1,5 @@
 import { For } from "solid-js/web";
-import { children, createSignal } from "solid-js";
+import { children, createSignal, createContext, useContext } from "solid-js";
 import { createStore } from "solid-js/store";
 
 type Status = "todo" | "doing" | "blocked" | "done";
@@ -10,6 +10,8 @@ interface Item {
   description: string;
   children?: Item[];
 }
+
+type AppState = Item[];
 
 const initialStore: Item[] = [
   {
@@ -38,47 +40,72 @@ const initialStore: Item[] = [
   },
 ];
 
-type AppState = Item[];
+type TremContext = [
+  AppState,
+  {
+    setItemStatus: (id: string, newStatus: Status) => void
+  },
+]
 
-const Comp = () => {
-  const [state, setState] = createStore<AppState>(initialStore);
-  const statuses = () =>
-    state.reduce((acc, item) => acc.add(item.status), new Set());
-
-  const setItemStatus = (id: string, newStatus: Status) => {
-    console.log("setItemStatus", id, newStatus);
-    setState(
-      (card) => card.id === id,
-      "status",
-      (_) => newStatus
-    );
-  };
+const TremContext = createContext<TremContext>();
+function TremProvider(props) {
+  const [state, setState] = createStore<AppState>(props.state || initialStore);
+  const trem: TremContext = [
+    state,
+    {
+      setItemStatus(id: string, newStatus: Status) {
+        console.log("setItemStatus", id, newStatus);
+        setState(
+          (card) => card.id === id,
+          "status",
+          (_) => newStatus
+        );
+      },
+    },
+  ];
 
   return (
-    <main>
-      <For each={Array.from(statuses().values())}>
-        {(item, i) => (
-          <Section {...{ item, state, setItemStatus, i }}></Section>
-        )}
-      </For>
-    </main>
+    <TremContext.Provider value={trem}>{props.children}</TremContext.Provider>
+  );
+}
+
+const useTremContext = () => {
+  const context = useContext(TremContext);
+  if (!context) {
+    throw new Error("useTremContext: cannot find a TremContext");
+  }
+  return context;
+};
+
+const Comp = () => {
+  const statuses = ["todo", "blocked", "doing", "done"];
+
+  return (
+    <TremProvider>
+      <main>
+        <For each={statuses}>
+          {(item, i) => <Section {...{ item, i }}></Section>}
+        </For>
+      </main>
+    </TremProvider>
   );
 };
 
 const Section = (props) => {
-  const cards = children(() => props.children);
+  const [state, { setItemStatus }] = useTremContext();
 
   const dropHandler = (event) => {
     event.preventDefault();
     const data = event.dataTransfer.getData("text/plain");
     console.log("drop", props.item, data);
-    props.setItemStatus(data, props.item);
+    setItemStatus(data, props.item);
   };
   const dragOverHandler = (event) => {
     event.preventDefault();
     console.log("dragOver");
     event.dataTransfer.dropEffect = "move";
   };
+
   return (
     <section
       onDrop={dropHandler}
@@ -90,7 +117,7 @@ const Section = (props) => {
     >
       <h2>
         {`${props.item}`}
-        <Cards status={props.item} state={props.state} />
+        <Cards status={props.item} state={state} />
       </h2>
     </section>
   );
