@@ -9,9 +9,10 @@ import {
   Accessor,
 } from "solid-js";
 import { createStore } from "solid-js/store";
+import { TremAppStateProvider, useTremAppStateContext } from './AppState';
 
 // type Status = "todo" | "doing" | "blocked" | "done";
-type CardId = string;
+export type CardId = string;
 
 interface Item {
   id: CardId;
@@ -23,37 +24,11 @@ interface Item {
 
 type AppState = {
   cards: Item[];
-  open: CardId | undefined;
 };
 
 const initialStore: AppState = {
   cards: [
-    // {
-    //   id: "1",
-    //   title: "One",
-    //   columnId: "todo",
-    //   description: "One Description",
-    // },
-    // {
-    //   id: "4",
-    //   title: "Four",
-    //   columnId: "todo",
-    //   description: "Four Description",
-    // },
-    // {
-    //   id: "2",
-    //   title: "Two",
-    //   columnId: "doing",
-    //   description: "Two Description",
-    // },
-    // {
-    //   id: "3",
-    //   title: "Three",
-    //   columnId: "done",
-    //   description: "Three Description",
-    // },
   ],
-  open: undefined,
 };
 
 const makeTremContext = () => {
@@ -85,12 +60,6 @@ const makeTremContext = () => {
           ...cards,
           { id: crypto.randomUUID(), title, columnId, description: "" },
         ]);
-      },
-      openCard(cardId: CardId) {
-        setState("open", cardId);
-      },
-      closeCard() {
-        setState("open", undefined);
       },
       removeCard(cardId: CardId) {
         setState("cards", (card) => card?.id === cardId, undefined);
@@ -130,11 +99,13 @@ const Comp = () => {
 
   return (
     <TremProvider>
-      <main>
-        <For each={statuses}>
-          {(columnId, i) => <Section {...{ columnId, i }}></Section>}
-        </For>
-      </main>
+      <TremAppStateProvider>
+        <main>
+          <For each={statuses}>
+            {(columnId, i) => <Section {...{ columnId, i }}></Section>}
+          </For>
+        </main>
+      </TremAppStateProvider>
     </TremProvider>
   );
 };
@@ -143,6 +114,7 @@ const Section: Component<{ columnId: string; i: Accessor<number> }> = (
   props
 ) => {
   const [state, { setItemColumn }] = useTremContext();
+  const [appState, _] = useTremAppStateContext();
 
   const dropHandler = (event: DragEvent) => {
     event.preventDefault();
@@ -158,7 +130,7 @@ const Section: Component<{ columnId: string; i: Accessor<number> }> = (
 
   const isOpen = () =>
     state.cards.find(
-      (card) => card?.columnId === props.columnId && card?.id === state.open
+      (card) => card?.columnId === props.columnId && card?.id === appState.open
     ) !== undefined;
 
   return (
@@ -224,9 +196,10 @@ const Cards: Component<{ columnId: string }> = (props) => {
 };
 
 const Card: Component<Item> = (props) => {
-  const [state, { openCard, closeCard, removeCard, setDescription }] =
+  const [_, { removeCard, setDescription }] =
     useTremContext();
-  const isOpen = () => state.open === props.id;
+  const [appState, { openCard, closeCard }] = useTremAppStateContext();
+  const isOpen = () => appState.open === props.id;
 
   const [editDescription, setEditDescription] = createSignal(false);
   const [dragging, setDragging] = createSignal(false);
