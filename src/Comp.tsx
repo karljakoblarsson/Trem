@@ -5,7 +5,7 @@ import {
   Accessor,
 } from "solid-js";
 import { TremClientStateProvider, useTremClientStateContext } from './ClientState';
-import { Item, TremDataProvider, useTremDataContext } from './TremData';
+import { CardId, Item, TremDataProvider, useTremDataContext } from './TremData';
 
 
 const Comp = () => {
@@ -43,8 +43,8 @@ const Section: Component<{ columnId: string; i: Accessor<number> }> = (
   };
 
   const isOpen = () =>
-    state.cards.find(
-      (card) => card?.columnId === props.columnId && card?.id === appState.open
+    Object.entries(state).find(
+      ([id, item]: [CardId, Item]) => item?.columnId === props.columnId && item?.id === appState.open
     ) !== undefined;
 
   return (
@@ -99,7 +99,7 @@ const AddCard: Component<{ columnId: string }> = (props) => {
 const Cards: Component<{ columnId: string }> = (props) => {
   const [state, _] = useTremDataContext();
   const children = (): Item[] =>
-    state.cards.filter((item: Item) => item?.columnId === props.columnId);
+    Object.entries(state).filter(([id, val]: [CardId, Item]) => val?.columnId === props.columnId).map(([_, val]) => val);
   return (
     <>
       <For each={Array.from(children())}>
