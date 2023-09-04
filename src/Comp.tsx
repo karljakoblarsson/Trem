@@ -9,7 +9,7 @@ import {
   Accessor,
 } from "solid-js";
 import { createStore } from "solid-js/store";
-import { TremAppStateProvider, useTremAppStateContext } from './AppState';
+import { TremClientStateProvider, useTremClientStateContext } from './ClientState';
 
 // type Status = "todo" | "doing" | "blocked" | "done";
 export type CardId = string;
@@ -99,13 +99,13 @@ const Comp = () => {
 
   return (
     <TremProvider>
-      <TremAppStateProvider>
+      <TremClientStateProvider>
         <main>
           <For each={statuses}>
             {(columnId, i) => <Section {...{ columnId, i }}></Section>}
           </For>
         </main>
-      </TremAppStateProvider>
+      </TremClientStateProvider>
     </TremProvider>
   );
 };
@@ -114,7 +114,7 @@ const Section: Component<{ columnId: string; i: Accessor<number> }> = (
   props
 ) => {
   const [state, { setItemColumn }] = useTremContext();
-  const [appState, _] = useTremAppStateContext();
+  const [appState, _] = useTremClientStateContext();
 
   const dropHandler = (event: DragEvent) => {
     event.preventDefault();
@@ -198,7 +198,7 @@ const Cards: Component<{ columnId: string }> = (props) => {
 const Card: Component<Item> = (props) => {
   const [_, { removeCard, setDescription }] =
     useTremContext();
-  const [appState, { openCard, closeCard }] = useTremAppStateContext();
+  const [appState, { openCard, closeCard }] = useTremClientStateContext();
   const isOpen = () => appState.open === props.id;
 
   const [editDescription, setEditDescription] = createSignal(false);
