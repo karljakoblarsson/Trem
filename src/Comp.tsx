@@ -142,7 +142,7 @@ const Comp = () => {
 const Section: Component<{ columnId: string; i: Accessor<number> }> = (
   props
 ) => {
-  const [_, { setItemColumn }] = useTremContext();
+  const [state, { setItemColumn }] = useTremContext();
 
   const dropHandler = (event: DragEvent) => {
     event.preventDefault();
@@ -156,11 +156,19 @@ const Section: Component<{ columnId: string; i: Accessor<number> }> = (
     event.dataTransfer.dropEffect = "move";
   };
 
+  const isOpen = () =>
+    state.cards.find(
+      (card) => card?.columnId === props.columnId && card?.id === state.open
+    ) !== undefined;
+
   return (
     <section
       onDrop={dropHandler}
       onDragOver={dragOverHandler}
-      class="card-section"
+      classList={{
+        "card-section": true,
+        open: isOpen(),
+      }}
       style={{
         "background-color": `hsla(${30 + props.i() * 35}, 70%,  90%, 1)`,
       }}
@@ -242,7 +250,7 @@ const Card: Component<Item> = (props) => {
     removeCard(props.id);
   };
 
-  let textArea;
+  let textArea: HTMLTextAreaElement;
 
   return (
     <div
@@ -260,7 +268,11 @@ const Card: Component<Item> = (props) => {
             fallback={
               <p
                 class="descriptionText"
-                onClick={(e) => {setEditDescription(true); textArea?.focus();}}
+                onClick={(_) => {
+                  setEditDescription(true);
+                  textArea?.focus();
+                  textArea?.setSelectionRange(-1, -1);
+                }}
               >
                 {props.description}
               </p>
