@@ -1,104 +1,18 @@
 import { For, Show } from "solid-js/web";
 import {
-  ParentComponent,
   Component,
   createSignal,
-  createContext,
-  createEffect,
-  useContext,
   Accessor,
 } from "solid-js";
-import { createStore } from "solid-js/store";
 import { TremClientStateProvider, useTremClientStateContext } from './ClientState';
+import { Item, TremDataProvider, useTremDataContext } from './TremData';
 
-// type Status = "todo" | "doing" | "blocked" | "done";
-export type CardId = string;
-
-interface Item {
-  id: CardId;
-  title: string;
-  columnId: string;
-  description: string;
-  children?: Item[];
-}
-
-type AppState = {
-  cards: Item[];
-};
-
-const initialStore: AppState = {
-  cards: [
-  ],
-};
-
-const makeTremContext = () => {
-  const LS_KEY = "TREM_STATE";
-  const localStorageState = localStorage.getItem(LS_KEY);
-  const startState = localStorageState
-    ? JSON.parse(localStorageState)
-    : initialStore;
-
-  const [state, setState] = createStore<AppState>(startState);
-
-  createEffect(() => localStorage.setItem(LS_KEY, JSON.stringify(state)));
-
-  return [
-    state,
-    {
-      setItemColumn(id: string, newColumnId: string) {
-        console.log("setItemColumn", id, newColumnId);
-        setState(
-          "cards",
-          (card) => card?.id === id,
-          "columnId",
-          (_) => newColumnId
-        );
-      },
-      addItem(title: string, columnId: string) {
-        console.log("Adding item:", title);
-        setState("cards", (cards) => [
-          ...cards,
-          { id: crypto.randomUUID(), title, columnId, description: "" },
-        ]);
-      },
-      removeCard(cardId: CardId) {
-        setState("cards", (card) => card?.id === cardId, undefined);
-      },
-      setDescription(cardId: CardId, description: string) {
-        setState(
-          "cards",
-          (card) => card?.id === cardId,
-          "description",
-          description
-        );
-      },
-    },
-  ] as const;
-};
-
-type TremContext = ReturnType<typeof makeTremContext>;
-const TremContext = createContext<TremContext>();
-
-const TremProvider: ParentComponent = (props) => {
-  const trem = makeTremContext();
-  return (
-    <TremContext.Provider value={trem}>{props.children}</TremContext.Provider>
-  );
-};
-
-const useTremContext = (): TremContext => {
-  const context = useContext(TremContext);
-  if (!context) {
-    throw new Error("useTremContext: cannot find a TremContext");
-  }
-  return context;
-};
 
 const Comp = () => {
   const statuses = ["todo", "blocked", "doing", "done"];
 
   return (
-    <TremProvider>
+    <TremDataProvider>
       <TremClientStateProvider>
         <main>
           <For each={statuses}>
@@ -106,14 +20,14 @@ const Comp = () => {
           </For>
         </main>
       </TremClientStateProvider>
-    </TremProvider>
+    </TremDataProvider>
   );
 };
 
 const Section: Component<{ columnId: string; i: Accessor<number> }> = (
   props
 ) => {
-  const [state, { setItemColumn }] = useTremContext();
+  const [state, { setItemColumn }] = useTremDataContext();
   const [appState, _] = useTremClientStateContext();
 
   const dropHandler = (event: DragEvent) => {
@@ -155,7 +69,7 @@ const Section: Component<{ columnId: string; i: Accessor<number> }> = (
 };
 
 const AddCard: Component<{ columnId: string }> = (props) => {
-  const [_, { addItem }] = useTremContext();
+  const [_, { addItem }] = useTremDataContext();
   const [newTitle, setNewTitle] = createSignal<string | undefined>();
   let titleInput: HTMLInputElement;
 
@@ -183,7 +97,7 @@ const AddCard: Component<{ columnId: string }> = (props) => {
 };
 
 const Cards: Component<{ columnId: string }> = (props) => {
-  const [state, _] = useTremContext();
+  const [state, _] = useTremDataContext();
   const children = (): Item[] =>
     state.cards.filter((item: Item) => item?.columnId === props.columnId);
   return (
@@ -197,7 +111,7 @@ const Cards: Component<{ columnId: string }> = (props) => {
 
 const Card: Component<Item> = (props) => {
   const [_, { removeCard, setDescription }] =
-    useTremContext();
+    useTremDataContext();
   const [appState, { openCard, closeCard }] = useTremClientStateContext();
   const isOpen = () => appState.open === props.id;
 

@@ -5,7 +5,7 @@ import {
   useContext,
 } from "solid-js";
 import { createStore } from "solid-js/store";
-import { CardId } from './Comp';
+import { CardId } from './TremData';
 
 type ClientState = {
   open: CardId | undefined;
@@ -53,7 +53,7 @@ export const TremClientStateProvider: ParentComponent = (props) => {
 export const useTremClientStateContext = (): TremClientStateContext => {
   const context = useContext(TremClientStateContext);
   if (!context) {
-    throw new Error("useTremContext: cannot find a TremContext");
+    throw new Error("useTremClientStateContext: cannot find a TremContext");
   }
   return context;
 };
