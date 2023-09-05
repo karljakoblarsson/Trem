@@ -1,20 +1,84 @@
 html {
   --trem-border-radius: 0.25em;
   --trem-background: hsl(50, 15%, 98%);
+  --trem-box-shadow-raised: rgba(9, 30, 66, 0.25) 0px 1px 1px 0px,
+    rgba(9, 30, 66, 0.31) 0px 0px 1px 0px;
+
+  --trem-card-background: #fdfdfd;
+  --trem-section-background: #f6f2f8;
 }
 
 body {
-  background-color: var(--trem-background);
+  /* background-color: var(--trem-background); */
+  margin: 0;
+  padding: 0;
+
+  font-family: "Helvetica", sans-serif;
+}
+
+#root {
+  padding: 0;
+}
+
+.background-container {
+  padding: 0;
+  background-size: cover;
+  background-attachment: fixed;
+  overflow: auto;
+}
+
+header {
+  position: sticky;
+  top: 0px;
+  left: 0px;
+  z-index: 10;
+  width: 100%;
+  background: hsla(0, 100%, 0%, 60%);
+  box-shadow: var(--trem-box-shadow-raised);
+}
+
+header > h1 {
+  display: block;
+  margin: 0em;
+  padding: 0.5em;
+  font-weight: 700;
+  color: var(--trem-section-background);
 }
 
 main {
   display: flex;
   flex-direction: row;
   gap: 1em;
+  padding: 1em 0.5em;
+  width: 100%;
+  height: 100vh;
 }
 
 .column-title {
   margin: 0.2em 0 1em 0;
+  padding: 0;
+  font-weight: 400;
+  display: flex;
+  flex-direction: row;
+  gap: 0.25em;
+}
+
+.column-title > input {
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0;
+}
+
+.column-title > input:not(:focus) {
+  border: none;
+  display: block;
+  padding: none;
+  /* width: 100%; */
+  background: inherit;
+}
+
+.column-title > input:not(:focus) + button {
+  visibility: hidden;
 }
 
 .card-section {
@@ -24,9 +88,9 @@ main {
 
   border-radius: var(--trem-border-radius);
   padding: 1em;
-  background-color: hsla(23, 80%,  80%, 0.3);
+  background-color: var(--trem-section-background);
 
-  box-shadow: 0px 0px 4px hsla(0, 0%, 35%, 25%);
+  box-shadow: var(--trem-box-shadow-raised);
 
   transition: min-width 0.5s ease-in-out;
 }
@@ -45,14 +109,16 @@ main {
 
 .card {
   border-radius: var(--trem-border-radius);
-  background-color: hsla(200, 80%,  80%, 0.3);
+  background-color: var(--trem-card-background);
   padding: 0.5em 1em;
   transition: opacity 1s;
-  box-shadow: 0px 0px 4px hsla(0, 0%, 65%, 25%);
+  box-shadow: var(--trem-box-shadow-raised);
 }
 
 .card > h3 {
   margin: 0.5em 0;
+  font-weight: 400;
+  font-size: 0.75em;
 }
 
 .dragging {
@@ -64,11 +130,26 @@ main {
 .addCard {
   display: flex;
   flex-direction: row;
-  gap: 0.2em;
+  gap: 0.25em;
 }
 
-.addCard input {
-  background-color: var(--trem-background);
+.addCard > input {
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0.5em;
+  margin: 0;
+}
+
+.addCard > input:not(:focus) {
+  border: none;
+  display: block;
+  width: 100%;
+  background: var(--trem-card-background);
+  border-radius: var(--trem-border-radius);
+}
+
+.addCard > input:not(:focus) + button {
+  display: none;
 }
 
 .action-bar {
@@ -86,5 +167,4 @@ main {
   display: block;
   cursor: pointer;
   min-height: 1em;
-
 }

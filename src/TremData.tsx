@@ -54,14 +54,14 @@ const makeTremDataContext = () => {
   const ydoc = new Y.Doc();
   console.log('clientId', ydoc.clientID);
 
-  ydoc.on('update', update => {
-    console.log('update', update);
-  });
+  // ydoc.on('update', update => {
+  //   console.log('update', update);
+  // });
 
-  ydoc.on('beforeTransaction', console.log)
-  ydoc.on('beforeObserverCalls', console.log)
-  ydoc.on('afterTransaction', console.log)
-  ydoc.on('update', console.log)
+  // ydoc.on('beforeTransaction', console.log)
+  // ydoc.on('beforeObserverCalls', console.log)
+  // ydoc.on('afterTransaction', console.log)
+  // ydoc.on('update', console.log)
 
   const indexeddbProvider = new IndexeddbPersistence('trem-data', ydoc);
   indexeddbProvider.whenSynced.then(() => {
@@ -76,6 +76,7 @@ const makeTremDataContext = () => {
     }
   };
   const webrtcProvider = new WebrtcProvider('trem-data-demo-opiurjg', ydoc, rtcOptions);
+  webrtcProvider.on('peers', console.log);
 
   const websocketProvider = new WebsocketProvider(
       'ws://localhost:1234', 'trem-data-demo-opiurjg', ydoc

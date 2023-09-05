@@ -19,7 +19,6 @@ const App: Component = () => {
 
   return (
     <>
-      <h1>Trem</h1>
       <Routes />
     </>
   );

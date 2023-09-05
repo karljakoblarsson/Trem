@@ -1,12 +1,10 @@
 import { For, Show } from "solid-js/web";
+import { Component, createSignal, Accessor } from "solid-js";
 import {
-  Component,
-  createSignal,
-  Accessor,
-} from "solid-js";
-import { TremClientStateProvider, useTremClientStateContext } from './ClientState';
-import { CardId, Item, TremDataProvider, useTremDataContext } from './TremData';
-
+  TremClientStateProvider,
+  useTremClientStateContext,
+} from "./ClientState";
+import { CardId, Item, TremDataProvider, useTremDataContext } from "./TremData";
 
 const Comp = () => {
   const statuses = ["todo", "blocked", "doing", "done"];
@@ -14,11 +12,22 @@ const Comp = () => {
   return (
     <TremDataProvider>
       <TremClientStateProvider>
-        <main>
-          <For each={statuses}>
-            {(columnId, i) => <Section {...{ columnId, i }}></Section>}
-          </For>
-        </main>
+        <div
+          class="background-container"
+          style={{
+            background:
+              "linear-gradient(90deg, rgba(251,231,198,1) 0%, rgba(180,248,200,1) 33%, rgba(160,231,229,1) 67%, rgba(255,174,188,1) 100%)",
+          }}
+        >
+          <header>
+            <h1>Title</h1>
+          </header>
+          <main>
+            <For each={statuses}>
+              {(columnId, i) => <Section {...{ columnId, i }}></Section>}
+            </For>
+          </main>
+        </div>
       </TremClientStateProvider>
     </TremDataProvider>
   );
@@ -44,7 +53,8 @@ const Section: Component<{ columnId: string; i: Accessor<number> }> = (
 
   const isOpen = () =>
     Object.entries(state).find(
-      ([id, item]: [CardId, Item]) => item?.columnId === props.columnId && item?.id === appState.open
+      ([id, item]: [CardId, Item]) =>
+        item?.columnId === props.columnId && item?.id === appState.open
     ) !== undefined;
 
   return (
@@ -55,11 +65,16 @@ const Section: Component<{ columnId: string; i: Accessor<number> }> = (
         "card-section": true,
         open: isOpen(),
       }}
-      style={{
-        "background-color": `hsla(${30 + props.i() * 35}, 70%,  90%, 1)`,
-      }}
+      style={
+        {
+          // "background-color": `hsla(${30 + props.i() * 35}, 70%,  90%, 1)`,
+        }
+      }
     >
-      <h2 class="column-title">{`${props.columnId}`}</h2>
+      <h2 class="column-title">
+        <input type="text" value={props.columnId} />
+        <button>+</button>
+      </h2>
       <div class="card-container">
         <Cards columnId={props.columnId} />
         <AddCard columnId={props.columnId} />
@@ -89,6 +104,7 @@ const AddCard: Component<{ columnId: string }> = (props) => {
           ref={titleInput}
           type="text"
           onInput={(e) => setNewTitle(e.target.value)}
+          placeholder="+ Add new card"
         />
         <button>+</button>
       </form>
@@ -99,7 +115,9 @@ const AddCard: Component<{ columnId: string }> = (props) => {
 const Cards: Component<{ columnId: string }> = (props) => {
   const [state, _] = useTremDataContext();
   const children = (): Item[] =>
-    Object.entries(state).filter(([id, val]: [CardId, Item]) => val?.columnId === props.columnId).map(([_, val]) => val);
+    Object.entries(state)
+      .filter(([id, val]: [CardId, Item]) => val?.columnId === props.columnId)
+      .map(([_, val]) => val);
   return (
     <>
       <For each={Array.from(children())}>
@@ -110,8 +128,7 @@ const Cards: Component<{ columnId: string }> = (props) => {
 };
 
 const Card: Component<Item> = (props) => {
-  const [_, { removeCard, setDescription }] =
-    useTremDataContext();
+  const [_, { removeCard, setDescription }] = useTremDataContext();
   const [appState, { openCard, closeCard }] = useTremClientStateContext();
   const isOpen = () => appState.open === props.id;
 
