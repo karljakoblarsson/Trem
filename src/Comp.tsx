@@ -4,7 +4,7 @@ import {
   TremClientStateProvider,
   useTremClientStateContext,
 } from "./ClientState";
-import { CardId, Item, TremDataProvider, useTremDataContext } from "./TremData";
+import { CardId, TremDataProvider, useTremDataContext } from "./TremData";
 
 const Comp = () => {
   const statuses = ["todo", "blocked", "doing", "done"];
@@ -52,8 +52,8 @@ const Section: Component<{ columnId: string; i: Accessor<number> }> = (
   };
 
   const isOpen = () =>
-    Object.entries(state).find(
-      ([id, item]: [CardId, Item]) =>
+    Object.entries(state.cards).find(
+      ([id, item]) =>
         item?.columnId === props.columnId && item?.id === appState.open
     ) !== undefined;
 
@@ -114,20 +114,26 @@ const AddCard: Component<{ columnId: string }> = (props) => {
 
 const Cards: Component<{ columnId: string }> = (props) => {
   const [state, _] = useTremDataContext();
-  const children = (): Item[] =>
-    Object.entries(state)
-      .filter(([id, val]: [CardId, Item]) => val?.columnId === props.columnId)
-      .map(([_, val]) => val);
+  const children = () =>
+    Object.entries(state.cards)
+      .filter(([id, val]) => val?.columnId === props.columnId);
   return (
     <>
       <For each={Array.from(children())}>
-        {(card) => <Card {...card}></Card>}
+        {([id, card]) => <Card id={id} {...card}></Card>}
       </For>
     </>
   );
 };
 
-const Card: Component<Item> = (props) => {
+interface CardProps {
+  id: CardId;
+  title: string;
+  columnId: string;
+  description: string;
+}
+
+const Card: Component<CardProps> = (props) => {
   const [_, { removeCard, setDescription }] = useTremDataContext();
   const [appState, { openCard, closeCard }] = useTremClientStateContext();
   const isOpen = () => appState.open === props.id;

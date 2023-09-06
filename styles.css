@@ -6,6 +6,8 @@ html {
 
   --trem-card-background: #fdfdfd;
   --trem-section-background: #f6f2f8;
+  --trem-dark-overlay: hsla(0, 100%, 0%, 60%);
+  --trem-dark-border: hsla(0, 100%, 0%, 50%);
 }
 
 body {
@@ -33,7 +35,7 @@ header {
   left: 0px;
   z-index: 10;
   width: 100%;
-  background: hsla(0, 100%, 0%, 60%);
+  background: var(--trem-dark-overlay);
   box-shadow: var(--trem-box-shadow-raised);
 }
 
@@ -131,6 +133,8 @@ main {
   display: flex;
   flex-direction: row;
   gap: 0.25em;
+
+  margin-top: 0.25em;
 }
 
 .addCard > input {
@@ -138,12 +142,15 @@ main {
   font-size: inherit;
   padding: 0.5em;
   margin: 0;
+  width: 100%;
+  border: 1px solid var(--trem-dark-border);
+  /* border: none; */
+  /* box-shadow: var(--trem-box-shadow-raised); */
 }
 
 .addCard > input:not(:focus) {
-  border: none;
+  /* border: none; */
   display: block;
-  width: 100%;
   background: var(--trem-card-background);
   border-radius: var(--trem-border-radius);
 }
