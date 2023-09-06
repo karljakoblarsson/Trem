@@ -1,37 +1,62 @@
 import { For, Show } from "solid-js/web";
-import { Component, createSignal, Accessor } from "solid-js";
+import { Component, ParentComponent, createSignal, Accessor } from "solid-js";
 import {
   TremClientStateProvider,
   useTremClientStateContext,
 } from "./ClientState";
-import { CardId, TremDataProvider, useTremDataContext } from "./TremData";
+import { CardId,  TremDataProvider, useTremDataContext } from "./TremData";
 
 const Comp = () => {
-  const statuses = ["todo", "blocked", "doing", "done"];
 
   return (
     <TremDataProvider>
       <TremClientStateProvider>
-        <div
-          class="background-container"
-          style={{
-            background:
-              "linear-gradient(90deg, rgba(251,231,198,1) 0%, rgba(180,248,200,1) 33%, rgba(160,231,229,1) 67%, rgba(255,174,188,1) 100%)",
-          }}
-        >
-          <header>
-            <h1>Title</h1>
-          </header>
-          <main>
-            <For each={statuses}>
-              {(columnId, i) => <Section {...{ columnId, i }}></Section>}
-            </For>
-          </main>
-        </div>
+        <BackgroundContainer>
+          <>
+            <Header />
+            <Board />
+          </>
+        </BackgroundContainer>
       </TremClientStateProvider>
     </TremDataProvider>
   );
 };
+
+const BackgroundContainer: ParentComponent<{}> = (props) => {
+  const [state, _] = useTremDataContext();
+
+  const defaultBackground = 'yellow';
+  return (
+  <div
+    class="background-container"
+    style={{
+      background:
+        state.boardSettings?.background || defaultBackground,
+    }}
+  >
+    {props.children}
+  </div>
+)}
+
+const Header: Component = () => {
+  const [state, _] = useTremDataContext();
+
+  return (
+  <header>
+    <h1>{ state.boardSettings?.title }</h1>
+  </header>
+)}
+
+const Board: Component = () => {
+  const statuses = ["todo", "blocked", "doing", "done"];
+  return (
+    <main>
+      <For each={statuses}>
+        {(columnId, i) => <Section {...{ columnId, i }}></Section>}
+      </For>
+    </main>
+)}
+
 
 const Section: Component<{ columnId: string; i: Accessor<number> }> = (
   props

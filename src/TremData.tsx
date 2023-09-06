@@ -99,21 +99,77 @@ const makeTremDataContext = () => {
   // Yjs;
 
   const ydoc = new Y.Doc();
-  console.log("clientId", ydoc.clientID);
+  // console.log("clientId", ydoc.clientID);
 
-  // ydoc.on('update', update => {
-  //   console.log('update', update);
-  // });
+  // ydoc.on('update', console.log);
 
-  // ydoc.on('beforeTransaction', console.log)
-  // ydoc.on('beforeObserverCalls', console.log)
-  // ydoc.on('afterTransaction', console.log)
-  // ydoc.on('update', console.log)
+  const ystate: ExtendsYMap<SyncTremData> = ydoc.getMap("tremState");
 
-  const indexeddbProvider = new IndexeddbPersistence("trem-data", ydoc);
-  indexeddbProvider.whenSynced.then(() => {
-    console.log("loaded data from indexed db");
+  // Solid
+  const [state, setState] = createStore(ystate.toJSON());
+  // const [state, setState] = createStore<TremDataStore>(ystate.toJSON());
+
+  const observer = (events, transaction) => {
+    // console.log('observer', state, ystate.toJSON());
+    setState(reconcile(ystate.toJSON()));
+    // console.log('testsetsetestset');
+  };
+
+  ystate.observeDeep(observer);
+  onCleanup(() => ystate.unobserveDeep(observer));
+  // END Solid
+
+  let ycards: SyncCards;
+  ydoc.transact(() => {
+    if (!ystate.has("cards")) {
+      console.log('not has ycards');
+      ycards = new Y.Map();
+      ystate.set("cards", ycards);
+    } else {
+      console.log('has ycards');
+      ycards = ystate.get("cards");
+    }
   });
+  console.log('ycards', ycards);
+
+  let yboardsettings: SyncBoardSettings;
+  ydoc.transact(() => {
+    if (!ystate.has("boardSettings")) {
+      console.log('not has yboard');
+      yboardsettings = new Y.Map();
+      ystate.set("boardSettings", yboardsettings);
+      yboardsettings.set(
+        "background",
+        `linear-gradient(
+          90deg,
+          rgba(251,231,198,1) 0%,
+          rgba(180,248,200,1) 33%,
+          rgba(160,231,229,1) 67%,
+          rgba(255,174,188,1) 100%)`
+      );
+      yboardsettings.set("title", "New Board");
+    } else {
+      console.log('has yboard');
+      yboardsettings = ystate.get("boardSettings");
+    }
+  });
+
+  console.log('yboardsettings', ycards);
+
+  // setInterval(() => {
+  //   console.log("webrtc", webrtcProvider);
+  // }, 15000);
+  // setInterval(() => { console.log('conns', webrtcProvider?.room.webrtcConns)
+  // }, 3000);
+
+  // const nested = new Y.Map();
+  // nested.set('id', 'test');
+  // const example = new Y.Map();
+  // example.set( 'id', 'test-id');
+  // example.set( 'title', 'Example');
+  // example.set( 'columnId', 'todo');
+  // example.set( 'description', 'test');
+  // ycards.set('test-id', example as SyncItem);
 
   const signalingServers = ["ws://localhost:4444"];
   const rtcOptions = {
@@ -122,90 +178,51 @@ const makeTremDataContext = () => {
       password: "secret",
     },
   };
-  const webrtcProvider = new WebrtcProvider(
-    "trem-data-demo-opiurjg",
-    ydoc,
-    rtcOptions
-  );
-  webrtcProvider.on("peers", console.log);
 
-  const websocketProvider = new WebsocketProvider(
-    "ws://localhost:1234",
-    "trem-data-demo-opiurjg",
-    ydoc
-  );
+  // const indexeddbProvider = new IndexeddbPersistence("trem-data", ydoc);
+  // indexeddbProvider.whenSynced.then(() => {
+  //   console.log("loaded data from indexed db");
+  // });
 
-  const ystate: ExtendsYMap<SyncTremData> = ydoc.getMap("tremState");
+  // const webrtcProvider = new WebrtcProvider(
+  //   "trem-data-demo-qwepriu",
+  //   ydoc,
+  //   rtcOptions
+  // );
+  // webrtcProvider.on("peers", console.log);
 
-  const ycards: SyncCards = new Y.Map();
-  ystate.set("cards", ycards);
-  ycards.observeDeep((event) => {
-    console.log("ycards was modified", event);
-    console.log(ycards.toJSON());
-  });
-
-  const yboardsettings: SyncBoardSettings = new Y.Map();
-  yboardsettings.set(
-    "title",
-    `linear-gradient(
-      90deg,
-      rgba(251,231,198,1) 0%,
-      rgba(180,248,200,1) 33%,
-      rgba(160,231,229,1) 67%,
-      rgba(255,174,188,1) 100%)`
-  );
-  yboardsettings.set("background", "New Board");
-  ystate.set("boardSettings", yboardsettings);
-
-  setInterval(() => {
-    console.log("webrtc", webrtcProvider);
-  }, 15000);
-  // setInterval(() => { console.log('conns', webrtcProvider?.room.webrtcConns)
-  // }, 3000);
-
-  // const nested = new Y.Map();
-  // nested.set('id', 'test');
-  // const example: ExtendsYMap<Item> = new Y.Map();
-  // example.set( 'id', 'test-id');
-  // example.set( 'title', 'Example');
-  // example.set( 'columnId', 'todo');
-  // example.set( 'description', 'test');
-  // ycards.set('test-id', example);
+  // const websocketProvider = new WebsocketProvider(
+  //   "ws://localhost:1234",
+  //   "trem-data-demo-qwepriu",
+  //   ydoc
+  // );
 
   // ------------------------------------------------------------------------------
-
-  const [state, setState] = createStore(ystate.toJSON());
-  // const [state, setState] = createStore<TremDataStore>(ystate.toJSON());
-
-  const observer = (events, transaction) => {
-    console.log(ystate.toJSON());
-    setState(reconcile(ystate.toJSON()));
-  };
-
-  ycards.observeDeep(observer);
-  onCleanup(() => ycards.unobserveDeep(observer));
 
   return [
     state,
     {
       setItemColumn(id: string, newColumnId: string) {
-        console.log("setItemColumn", id, newColumnId);
+        // console.log("setItemColumn", id, newColumnId);
         const card: SyncItem = ycards.get(id);
         card.set("columnId", newColumnId);
       },
       addItem(title: string, columnId: string) {
-        console.log("Adding item:", title);
         const id: CardId = crypto.randomUUID();
-        const card = new Y.Map(
-          Object.entries({
-            id: id,
-            title: title,
-            columnId: columnId,
-            description: "",
-          })
-        ) as SyncItem;
+        const card = new Y.Map<string>();
 
-        ycards.set(id, card);
+        const arr = new Y.Array<string>();
+        arr.push(['test']);
+        console.log(arr);
+
+        card.set("id", id);
+        card.set("title", title);
+        card.set("columnId", columnId);
+        card.set("description", "");
+
+        ycards.set(id, card as SyncItem);
+        // console.log(ycards);
+        console.log("Adding item:", title, card, card.toJSON());
       },
       removeCard(cardId: CardId) {
         ycards.delete(cardId);
