@@ -142,6 +142,7 @@ const Cards: Component<{ columnId: string }> = (props) => {
   const children = () =>
     Object.entries(state.cards)
       .filter(([id, val]) => val?.columnId === props.columnId);
+  console.log(children);
   return (
     <>
       <For each={Array.from(children())}>
